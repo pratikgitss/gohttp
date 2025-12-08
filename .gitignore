@@ -1,0 +1,20 @@
+# Go build files
+bin/
+*.exe
+*.out
+*.test
+
+# Module cache
+/vendor/
+
+# IDE/editor files
+.idea/
+.vscode/
+*.swp
+*.bak
+
+# OS files
+.DS_Store
+Thumbs.db
+
+out
