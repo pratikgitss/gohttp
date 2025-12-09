@@ -5,6 +5,12 @@ import (
 	"net/http"
 )
 
+func readinessHandler(w http.ResponseWriter, _ *http.Request) {
+	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("OK"))
+}
+
 func main() {
 	const port = "8080"
 	const filepath = "."
@@ -15,8 +21,11 @@ func main() {
 		Addr:    ":" + port,
 	}
 
-	mux.Handle("/", http.FileServer(http.Dir(filepath)))
-	mux.Handle("/assets/logo.png", http.FileServer(http.Dir(filepath)))
+	fs := http.FileServer(http.Dir(filepath))
+
+	mux.Handle("/app/", http.StripPrefix("/app/", fs))
+
+	mux.HandleFunc("/healthz", readinessHandler)
 
 	log.Printf("Serving on port: %s\n", port)
 	log.Fatal(server.ListenAndServe())
