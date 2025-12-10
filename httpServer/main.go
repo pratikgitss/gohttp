@@ -18,7 +18,18 @@ func readinessHandler(w http.ResponseWriter, _ *http.Request) {
 }
 
 func (cfg *apiConfig) handlerReqCounts(w http.ResponseWriter, _ *http.Request) {
-	w.Write([]byte(fmt.Sprintf("Hits: %d", cfg.fileserverHits.Load())))
+
+	html := fmt.Sprintf(`
+<html>
+  <body>
+    <h1>Welcome, Chirpy Admin</h1>
+    <p>Chirpy has been visited %d times!</p>
+  </body>
+</html>
+`, cfg.fileserverHits.Load())
+
+	w.Header().Set("Content-Type", "text/html")
+	w.Write([]byte(html))
 }
 
 func (cfg *apiConfig) middlewareMetricsInc(next http.Handler) http.Handler {
@@ -47,10 +58,10 @@ func main() {
 	fs := http.FileServer(http.Dir(filepath))
 
 	mux.Handle("/app/", cfg.middlewareMetricsInc(http.StripPrefix("/app/", fs)))
-	mux.HandleFunc("/healthz", readinessHandler)
+	mux.HandleFunc("GET /api/healthz", readinessHandler)
 
-	mux.HandleFunc("/metrics", cfg.handlerReqCounts)
-	mux.HandleFunc("/reset", cfg.handlerResetCount)
+	mux.HandleFunc("GET /admin/metrics", cfg.handlerReqCounts)
+	mux.HandleFunc("POST /admin/reset", cfg.handlerResetCount)
 	log.Printf("Serving on port: %s\n", port)
 	log.Fatal(server.ListenAndServe())
 
